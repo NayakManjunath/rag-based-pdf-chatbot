@@ -1,8 +1,3 @@
-import os
-
-os.environ["HF_HUB_OFFLINE"] = "1"
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
-
 from sentence_transformers import SentenceTransformer
 
 
@@ -10,7 +5,7 @@ MODEL_NAME = "all-MiniLM-L6-v2"
 
 embedder = SentenceTransformer(
     MODEL_NAME,
-    local_files_only=True,
+    
 )
 
 
