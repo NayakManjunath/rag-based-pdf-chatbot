@@ -1,6 +1,5 @@
 from src.embeddings import generate_embeddings
 
-
 def embed_question(question: str):
     """Generate an embedding for a user question."""
     if not question or not question.strip():
