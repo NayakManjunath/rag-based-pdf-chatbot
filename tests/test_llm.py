@@ -73,11 +73,12 @@ def test_build_grounded_prompt_rejects_whitespace_question():
         )
 
 
-def test_create_gemini_client_rejects_missing_api_key(monkeypatch):
-    monkeypatch.setattr(llm, "API_KEY", None)
+def test_create_groq_client_rejects_missing_api_key(monkeypatch):
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    monkeypatch.setattr(llm.st, "secrets", {})
 
     with pytest.raises(
         ValueError,
-        match="GEMINI_API_KEY is not configured",
+        match="GROQ_API_KEY is not configured",
     ):
-        llm.create_gemini_client()
+        llm.create_groq_client()

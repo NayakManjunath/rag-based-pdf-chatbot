@@ -1,21 +1,32 @@
 import os
 
+import streamlit as st
 from dotenv import load_dotenv
-from google import genai
+from groq import Groq
 
 
 load_dotenv()
 
-API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL_NAME = "gemini-3.5-flash"
+
+MODEL_NAME = "openai/gpt-oss-120b"
 
 
-def create_gemini_client():
-    """Create and return a Gemini client using the configured API key."""
-    if not API_KEY:
-        raise ValueError("GEMINI_API_KEY is not configured.")
+def get_api_key() -> str | None:
+    """Get the Groq API key from Streamlit secrets or environment variables."""
+    if "GROQ_API_KEY" in st.secrets:
+        return st.secrets["GROQ_API_KEY"]
 
-    return genai.Client(api_key=API_KEY)
+    return os.getenv("GROQ_API_KEY")
+
+
+def create_groq_client():
+    """Create and return a Groq client using the configured API key."""
+    api_key = get_api_key()
+
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not configured.")
+
+    return Groq(api_key=api_key)
 
 
 def build_grounded_prompt(context: str, question: str) -> str:
@@ -38,14 +49,20 @@ Question:
 {question.strip()}
 """
 
+
 def generate_answer(context: str, question: str) -> str:
-    """Generate an answer from Gemini using the provided document context."""
-    client = create_gemini_client()
+    """Generate an answer from Groq using the provided document context."""
+    client = create_groq_client()
     prompt = build_grounded_prompt(context, question)
 
-    response = client.models.generate_content(
+    response = client.chat.completions.create(
         model=MODEL_NAME,
-        contents=prompt,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
     )
 
-    return response.text
+    return response.choices[0].message.content
