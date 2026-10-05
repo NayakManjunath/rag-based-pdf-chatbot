@@ -13,10 +13,12 @@ MODEL_NAME = "openai/gpt-oss-120b"
 
 def get_api_key() -> str | None:
     """Get the Groq API key from Streamlit secrets or environment variables."""
-    if "GROQ_API_KEY" in st.secrets:
+    try:
         return st.secrets["GROQ_API_KEY"]
-
-    return os.getenv("GROQ_API_KEY")
+    except st.errors.StreamlitSecretNotFoundError:
+        return os.getenv("GROQ_API_KEY")
+    except KeyError:
+        return os.getenv("GROQ_API_KEY")
 
 
 def create_groq_client():
