@@ -41,7 +41,7 @@ def test_grounded_prompt_prevents_using_information_outside_context():
     )
 
     assert (
-        "Answer the question using only the provided document context."
+        "Answer the question using ONLY information explicitly supported by the provided document context."
         in prompt
     )
 

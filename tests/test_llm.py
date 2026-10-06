@@ -25,7 +25,10 @@ def test_build_grounded_prompt_contains_grounding_instruction():
         question,
     )
 
-    assert "using only the provided document context" in prompt
+    assert (
+        "Answer the question using ONLY information explicitly supported by the provided document context."
+        in prompt
+    )
     assert "I don't know from this document." in prompt
 
 

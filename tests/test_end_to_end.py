@@ -85,4 +85,7 @@ def test_end_to_end_rag_pipeline(tmp_path, monkeypatch):
 
     assert "FAISS" in prompt
     assert question in prompt
-    assert "Answer the question using only the provided document context." in prompt
+    assert (
+        "Answer the question using ONLY information explicitly supported by the provided document context."
+        in prompt
+    )
