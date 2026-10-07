@@ -4,6 +4,8 @@ import pytest
 
 from src.pdf_processor import (
     create_chunks,
+    create_document_chunks,
+    extract_pages_from_pdf,
     extract_text_from_pdf,
     save_uploaded_pdf,
 )
@@ -72,3 +74,78 @@ def test_create_chunks_returns_empty_list_for_empty_text():
 def test_create_chunks_rejects_invalid_chunk_size():
     with pytest.raises(ValueError, match="chunk_size must be greater than zero"):
         create_chunks("sample text", chunk_size=0)
+
+def test_extract_pages_from_pdf_preserves_page_numbers(tmp_path):
+    from pypdf import PdfWriter
+
+    pdf_path = tmp_path / "sample.pdf"
+
+    writer = PdfWriter()
+    writer.add_blank_page(width=72, height=72)
+    writer.add_blank_page(width=72, height=72)
+
+    with pdf_path.open("wb") as file:
+        writer.write(file)
+
+    pages = extract_pages_from_pdf(pdf_path)
+
+    assert len(pages) == 2
+    assert pages[0]["page_number"] == 1
+    assert pages[1]["page_number"] == 2
+
+def test_create_document_chunks_preserves_source_filename():
+    pages = [
+        {
+            "page_number": 1,
+            "text": "This is page one content.",
+        }
+    ]
+
+    chunks = create_document_chunks(
+        pages,
+        source_file="sample.pdf",
+        chunk_size=800,
+    )
+
+    assert len(chunks) == 1
+    assert chunks[0].source_file == "sample.pdf"
+
+def test_create_document_chunks_generates_unique_chunk_ids():
+    pages = [
+        {
+            "page_number": 1,
+            "text": "A" * 1700,
+        }
+    ]
+
+    chunks = create_document_chunks(
+        pages,
+        source_file="sample.pdf",
+        chunk_size=800,
+    )
+
+    chunk_ids = [
+        chunk.chunk_id
+        for chunk in chunks
+    ]
+
+    assert len(chunk_ids) == len(set(chunk_ids))
+
+
+def test_create_document_chunks_preserves_chunk_text():
+    text = "This is the original PDF text."
+
+    pages = [
+        {
+            "page_number": 1,
+            "text": text,
+        }
+    ]
+
+    chunks = create_document_chunks(
+        pages,
+        source_file="sample.pdf",
+        chunk_size=800,
+    )
+
+    assert chunks[0].text == text

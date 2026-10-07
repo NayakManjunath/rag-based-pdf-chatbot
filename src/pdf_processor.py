@@ -2,6 +2,8 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
+from src.models import DocumentChunk
+
 
 UPLOAD_DIR = Path("data/uploads")
 
@@ -46,7 +48,37 @@ def extract_text_from_pdf(file_path: str | Path) -> str:
     return "\n".join(page_text)
 
 
-def create_chunks(text: str, chunk_size: int = 800) -> list[str]:
+def extract_pages_from_pdf(file_path: str | Path) -> list[dict]:
+    """Extract text from each PDF page while preserving page numbers."""
+    pdf_path = Path(file_path)
+
+    if not pdf_path.exists():
+        raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+
+    if pdf_path.suffix.lower() != ".pdf":
+        raise ValueError("Only PDF files are supported.")
+
+    reader = PdfReader(pdf_path)
+
+    pages = []
+
+    for page_number, page in enumerate(reader.pages, start=1):
+        text = page.extract_text() or ""
+
+        pages.append(
+            {
+                "page_number": page_number,
+                "text": text,
+            }
+        )
+
+    return pages
+
+
+def create_chunks(
+    text: str,
+    chunk_size: int = 800,
+) -> list[str]:
     """Split document text into fixed-size character chunks."""
     if chunk_size <= 0:
         raise ValueError("chunk_size must be greater than zero.")
@@ -58,3 +90,50 @@ def create_chunks(text: str, chunk_size: int = 800) -> list[str]:
         text[start:start + chunk_size]
         for start in range(0, len(text), chunk_size)
     ]
+
+
+def create_document_chunks(
+    pages: list[dict],
+    source_file: str,
+    chunk_size: int = 800,
+) -> list[DocumentChunk]:
+    """Create page-aware chunks with source metadata."""
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be greater than zero.")
+
+    if not source_file or not source_file.strip():
+        raise ValueError("source_file cannot be empty.")
+
+    if not pages:
+        return []
+
+    chunks = []
+    chunk_counter = 1
+
+    for page in pages:
+        page_number = page["page_number"]
+        text = page["text"]
+
+        if not text:
+            continue
+
+        for start in range(0, len(text), chunk_size):
+            chunk_text = text[start:start + chunk_size]
+
+            chunk_id = (
+                f"page-{page_number:03d}-"
+                f"chunk-{chunk_counter:03d}"
+            )
+
+            chunks.append(
+                DocumentChunk(
+                    text=chunk_text,
+                    source_file=source_file,
+                    page_number=page_number,
+                    chunk_id=chunk_id,
+                )
+            )
+
+            chunk_counter += 1
+
+    return chunks

@@ -4,10 +4,15 @@ import streamlit as st
 
 from src.embeddings import generate_embeddings
 from src.llm import generate_answer
-from src.pdf_processor import UPLOAD_DIR, create_chunks, extract_text_from_pdf
 from src.rag_pipeline import build_context
 from src.retriever import embed_question, retrieve_relevant_chunks
 from src.vector_store import create_faiss_index
+
+from src.pdf_processor import (
+    UPLOAD_DIR,
+    create_document_chunks,
+    extract_pages_from_pdf,
+)
 
 
 st.set_page_config(
@@ -48,8 +53,12 @@ if ask_button:
                 pdf_path = UPLOAD_DIR / filename
                 pdf_path.write_bytes(uploaded_file.getvalue())
 
-                text = extract_text_from_pdf(pdf_path)
-                chunks = create_chunks(text)
+                pages = extract_pages_from_pdf(pdf_path)
+
+                chunks = create_document_chunks(
+                    pages,
+                    source_file=filename,
+                    )
 
                 if not chunks:
                     st.error("No text could be extracted from the PDF.")

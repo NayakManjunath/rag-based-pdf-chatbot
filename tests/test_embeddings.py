@@ -1,13 +1,29 @@
 import numpy as np
 
 from src.embeddings import generate_embeddings
+from src.models import DocumentChunk
 
 
 def test_generate_embeddings_returns_one_embedding_per_chunk():
     chunks = [
-        "Employees must carry their ID card.",
-        "Leave policy applies to all employees.",
-        "Working hours are from 9 AM to 5 PM.",
+        DocumentChunk(
+            text="Employees must carry their ID card.",
+            source_file="test.pdf",
+            page_number=1,
+            chunk_id="page-001-chunk-001",
+        ),
+        DocumentChunk(
+            text="Leave policy applies to all employees.",
+            source_file="test.pdf",
+            page_number=2,
+            chunk_id="page-002-chunk-001",
+        ),
+        DocumentChunk(
+            text="Working hours are from 9 AM to 5 PM.",
+            source_file="test.pdf",
+            page_number=3,
+            chunk_id="page-003-chunk-001",
+        ),
     ]
 
     embeddings = generate_embeddings(chunks)
@@ -17,8 +33,18 @@ def test_generate_embeddings_returns_one_embedding_per_chunk():
 
 def test_generate_embeddings_returns_float32():
     chunks = [
-        "This is a test document.",
-        "This is another test document.",
+        DocumentChunk(
+            text="This is a test document.",
+            source_file="test.pdf",
+            page_number=1,
+            chunk_id="page-001-chunk-001",
+        ),
+        DocumentChunk(
+            text="This is another test document.",
+            source_file="test.pdf",
+            page_number=2,
+            chunk_id="page-002-chunk-001",
+        ),
     ]
 
     embeddings = generate_embeddings(chunks)
@@ -28,8 +54,18 @@ def test_generate_embeddings_returns_float32():
 
 def test_generate_embeddings_are_normalized():
     chunks = [
-        "Employees must carry their ID card.",
-        "Leave policy applies to all employees.",
+        DocumentChunk(
+            text="Employees must carry their ID card.",
+            source_file="test.pdf",
+            page_number=1,
+            chunk_id="page-001-chunk-001",
+        ),
+        DocumentChunk(
+            text="Leave policy applies to all employees.",
+            source_file="test.pdf",
+            page_number=2,
+            chunk_id="page-002-chunk-001",
+        ),
     ]
 
     embeddings = generate_embeddings(chunks)

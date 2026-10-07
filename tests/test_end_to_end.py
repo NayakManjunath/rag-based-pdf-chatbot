@@ -41,15 +41,26 @@ def test_end_to_end_rag_pipeline(tmp_path, monkeypatch):
     )
 
     monkeypatch.setattr(
-        "src.pdf_processor.extract_text_from_pdf",
-        lambda _: test_text,
-    )
+    "src.pdf_processor.extract_pages_from_pdf",
+    lambda _: [
+        {
+            "page_number": 1,
+            "text": (
+                "FAISS is used for efficient similarity search of embeddings. "
+                "The RAG chatbot retrieves relevant document chunks before "
+                "generating an answer."
+            ),
+        }
+    ],
+)
 
     
 
-    extracted_text = pdf_processor.extract_text_from_pdf(pdf_path)
-    chunks = create_chunks(
-        extracted_text,
+    pages = pdf_processor.extract_pages_from_pdf(pdf_path)
+
+    chunks = pdf_processor.create_document_chunks(
+        pages,
+        source_file=pdf_path.name,
         chunk_size=800,
     )
 
@@ -71,7 +82,7 @@ def test_end_to_end_rag_pipeline(tmp_path, monkeypatch):
     )
 
     assert retrieved_chunks
-    assert "FAISS" in retrieved_chunks[0]
+    assert "FAISS" in retrieved_chunks[0]["text"]
 
     context = build_context(retrieved_chunks)
 
