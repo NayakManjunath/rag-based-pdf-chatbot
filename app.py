@@ -7,6 +7,7 @@ from src.llm import generate_answer
 from src.rag_pipeline import build_context
 from src.retriever import embed_question, retrieve_relevant_chunks
 from src.vector_store import create_faiss_index
+from src.source_evidence import format_source_evidence
 
 from src.pdf_processor import (
     UPLOAD_DIR,
@@ -74,7 +75,7 @@ if ask_button:
                         question_embedding,
                         k=3,
                     )
-
+                    sources = format_source_evidence(retrieved_chunks)
                     context = build_context(retrieved_chunks)
 
                     answer = generate_answer(
@@ -83,6 +84,7 @@ if ask_button:
                     )
 
                     st.session_state["answer"] = answer
+                    st.session_state["sources"] = sources
 
         except Exception as exc:
             st.error("Unable to process the PDF and generate an answer.")
@@ -91,5 +93,22 @@ if ask_button:
 
 if "answer" in st.session_state:
     st.divider()
+
     st.subheader("Answer")
     st.write(st.session_state["answer"])
+
+    sources = st.session_state.get("sources", [])
+
+    if sources:
+        st.subheader("📚 Sources")
+
+        source_file = sources[0]["source_file"]
+
+        source_details = " · ".join(
+            f"Page {source['page_number']} ({source['chunk_id']})"
+            for source in sources
+        )
+
+        st.caption(
+            f"📄 {source_file} — {source_details}"
+        )
