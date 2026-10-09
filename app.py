@@ -69,12 +69,14 @@ if uploaded_file is not None:
 # Question input
 # ---------------------------------------------------------
 
-question = st.text_input(
-    "Ask a question",
-    placeholder="Ask something about your PDF...",
-)
+with st.form("question_form", clear_on_submit=False):
+    question = st.text_input(
+        "Ask a question",
+        placeholder="Ask something about your PDF...",
+        key="question_input",
+    )
 
-ask_button = st.button("Ask")
+    ask_button = st.form_submit_button("Ask")
 
 
 # ---------------------------------------------------------
