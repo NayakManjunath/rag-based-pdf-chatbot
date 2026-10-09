@@ -17,7 +17,7 @@ from src.pdf_processor import (
     extract_pages_from_pdf,
 )
 from src.rag_pipeline import build_context
-from src.retriever import embed_question, retrieve_relevant_chunks
+from src.retriever import retrieve_with_conversation_context
 from src.source_evidence import format_source_evidence
 from src.vector_store import create_faiss_index
 
@@ -149,21 +149,13 @@ if ask_button:
                 # Question → embedding
                 # -----------------------------------------
 
-                question_embedding = embed_question(
-                    question
-                )
-
-                # -----------------------------------------
-                # Retrieve relevant chunks
-                # -----------------------------------------
-
-                retrieved_chunks = retrieve_relevant_chunks(
-                    index,
-                    chunks,
-                    question_embedding,
+                retrieved_chunks = retrieve_with_conversation_context(
+                    index=index,
+                    chunks=chunks,
+                    chat_history=st.session_state["chat_history"][:-1],
+                    question=question,
                     k=3,
                 )
-
                 # -----------------------------------------
                 # Source evidence
                 # -----------------------------------------

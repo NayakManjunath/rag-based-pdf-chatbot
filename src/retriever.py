@@ -65,3 +65,32 @@ def retrieve_relevant_chunks(
         )
 
     return results
+
+def retrieve_with_conversation_context(
+    index,
+    chunks: list[DocumentChunk],
+    chat_history: list[dict],
+    question: str,
+    k: int = 3,
+) -> list[dict]:
+    """
+    Resolve a conversational question and retrieve relevant document chunks.
+
+    The resolved question is used only for retrieval.
+    The original user question remains unchanged in chat history.
+    """
+    from src.query_resolver import resolve_question
+
+    resolved_question = resolve_question(
+        chat_history,
+        question,
+    )
+
+    question_embedding = embed_question(resolved_question)
+
+    return retrieve_relevant_chunks(
+        index,
+        chunks,
+        question_embedding,
+        k=k,
+    )
